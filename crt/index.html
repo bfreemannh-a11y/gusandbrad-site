@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How a picture tube paints a picture</title>
+<style>
+  /* The picture-tube beam clip (from the Watchman's tube film) with Gus in the lower left
+     talking it through (Brad 10-07). Embedded on the front page; gus_face.js is the rig's own face. */
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #wrap { position: relative; width: 100%; height: 100%; }
+  video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #gus-corner { position: absolute; left: 2%; bottom: 3%; z-index: 5; width: clamp(96px, 24%, 220px);
+    padding: 6px 6px 4px; border-radius: 9px; border: 1px solid #131415;
+    background: linear-gradient(#383c40, #2e3134 40%, #232527);
+    box-shadow: 0 8px 24px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08); }
+  #gus-corner .scr { position: relative; aspect-ratio: 4/3; border-radius: 9px/7px; overflow: hidden;
+    background: #04120a; border: 4px solid #131415; }
+  #gus-corner canvas { width: 100%; height: 100%; display: block; }
+  #gus-corner .scr::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px); }
+  #gus-corner .plate { display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 2px 0; font: 700 9px/1 "Courier New", monospace; letter-spacing: .16em; color: #cfd3cc; }
+  #led { width: 7px; height: 7px; border-radius: 50%; background: #3a3d35; }
+  #led.lit { background: #4dff85; box-shadow: 0 0 7px #4dff85; }
+  #go { position: absolute; right: 3%; bottom: 5%; z-index: 6; display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; border-radius: 30px; cursor: pointer; background: rgba(5,8,7,.85); color: #d9e4df;
+    border: 2px solid #4ee08a; font: 600 15px/1.2 Georgia, serif; box-shadow: 0 0 20px rgba(78,224,138,.3);
+    opacity: .55; pointer-events: none; transition: opacity .4s; }
+  #go.ready { opacity: 1; pointer-events: auto; }
+  #go.gone { opacity: 0; pointer-events: none; }
+  #go b { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #4ee08a; color: #04110a; font-size: 14px; }
+  @media (max-width: 480px) { #go { font-size: 12px; padding: 7px 11px; } #go b { width: 24px; height: 24px; } }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <video id="clip" src="../media/crt_beam.mp4" poster="../media/crt_beam_poster.jpg" muted loop playsinline autoplay preload="auto"
+         aria-label="Animation: the electron beam painting a picture inside a picture tube"></video>
+  <div id="gus-corner">
+    <div class="scr"><canvas id="scope" aria-label="Gus, explaining the picture tube"></canvas></div>
+    <div class="plate"><span>GUS-1000Z</span><span id="led"></span></div>
+  </div>
+  <button id="go" type="button"><b>&#9654;</b><span>Gus explains</span></button>
+</div>
+<div id="viewer" class="hidden" hidden></div>
+<audio id="voice" src="../media/crt_demo.mp3" preload="none"></audio>
+<script src="../gus_face.js?v=28205360"></script>
+<script>
+(function () {
+  var GUS = typeof Scope !== "undefined" ? Scope : null;
+  var go = document.getElementById("go"), voice = document.getElementById("voice"),
+      clip = document.getElementById("clip"), actx = null;
+  if (GUS) { GUS.power(true); document.getElementById("led").classList.add("lit"); }
+  // the voice exists only after Brad approves the words (demo_radio/render.py --demo crt)
+  fetch("../media/crt_demo.json", { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw 0; go.classList.add("ready"); })
+    .catch(function () { go.querySelector("span").textContent = "Gus is still rehearsing"; });
+  go.addEventListener("click", function () {
+    if (GUS && !actx) {
+      try {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        actx.createMediaElementSource(voice).connect(GUS.sink(actx));
+      } catch (e) { actx = null; }
+    }
+    if (actx && actx.state === "suspended") actx.resume();
+    if (GUS) GUS.face("warm");
+    clip.currentTime = 0; clip.play(); voice.currentTime = 0; voice.play();
+    go.classList.add("gone");
+  });
+  voice.addEventListener("ended", function () {
+    go.querySelector("span").textContent = "Again"; go.classList.remove("gone");
+    if (GUS) GUS.face("smile");
+  });
+})();
+</script>
+</body>
+</html>

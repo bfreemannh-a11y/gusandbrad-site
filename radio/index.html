@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FOLLOW THE POWER — Schematic Walkthrough</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#0b1016; --panel:#111925; --line:#22303f;
+    --ink:#e8eef5; --dim:#8fa3b8; --wire:#42566b; --sym:#7d95ab;
+    --power:#ffb347; --signal:#4fd8ff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding:14px 24px; gap:10px;
+  }
+  header{width:100%; max-width:1380px; display:flex; align-items:baseline; gap:16px;}
+  header h1{font-size:24px; letter-spacing:1px;}
+  header h1 span{color:var(--power);}
+  header .sub{color:var(--dim); font-size:14px;}
+  #runtime{margin-left:auto; color:var(--dim); font-size:13px;}
+
+  #stage-wrap{width:100%; max-width:1380px; background:#0d141d;
+    border:1px solid var(--line); border-radius:14px; position:relative; overflow:hidden;}
+  svg#diagram{width:100%; height:auto; display:block;}
+
+  /* legend */
+  #legend{display:flex; gap:22px; font-size:13px; color:var(--dim);
+    width:100%; max-width:1380px; justify-content:flex-end; margin-top:-4px;}
+  #legend .row{display:flex; align-items:center; gap:8px;}
+  #legend svg{width:46px; height:14px;}
+
+  /* schematic ink */
+  .w{stroke:var(--wire); stroke-width:2; fill:none;}
+  .sym{stroke:var(--sym); stroke-width:2; fill:none;}
+  .symf{fill:var(--sym);}
+  .lbl{fill:#5d7288; font-size:13px; text-anchor:middle;}
+  .lbl2{fill:#48607a; font-size:11px; text-anchor:middle;}
+  .region{fill:#33475c; font-size:17px; font-weight:800; letter-spacing:2px; text-anchor:middle;}
+  .can{stroke:#33475c; stroke-width:1.5; fill:none; stroke-dasharray:5 4;}
+  .tag9{fill:var(--power); font-size:12px; font-weight:700; text-anchor:middle; opacity:.55;}
+  .dot{fill:var(--sym);}
+
+  /* overlays */
+  .pw{stroke:var(--power); stroke-width:3.5; fill:none; stroke-dasharray:9 7;
+      animation:march 0.8s linear infinite; filter:drop-shadow(0 0 5px rgba(255,179,71,.7));}
+  @keyframes march{to{stroke-dashoffset:-16;}}
+  .sg{stroke:var(--signal); stroke-width:2.6; fill:none;
+      filter:drop-shadow(0 0 5px rgba(79,216,255,.65));}
+  .faded{opacity:.32; filter:none;}
+
+  /* caption card */
+  #card{width:100%; max-width:1380px; background:var(--panel);
+    border:1px solid var(--line); border-radius:14px;
+    padding:14px 24px 16px; min-height:168px;}
+  #card .top{display:flex; align-items:baseline; gap:14px; margin-bottom:6px;}
+  #stageno{color:var(--signal); font-weight:700; font-size:14px; letter-spacing:1px;}
+  #title{font-size:22px; font-weight:700;}
+  #text{font-size:18px; line-height:1.45; color:var(--ink); max-width:1200px; min-height:52px;}
+  #chips{display:flex; align-items:center; gap:14px; margin-top:12px; flex-wrap:wrap;}
+  .chip{border:1.5px solid var(--line); border-radius:10px; padding:7px 13px;
+    display:flex; align-items:center; gap:12px; background:#0d141d;}
+  .chip .tagg{font-size:11px; font-weight:800; letter-spacing:1.5px; color:var(--dim);}
+  .chip .val{font-size:16px; font-weight:650;}
+  .chip.out{border-color:var(--signal);}
+  .chip.out .tagg{color:var(--signal);}
+  .chip.out.pwr{border-color:var(--power);}
+  .chip.out.pwr .tagg{color:var(--power);}
+  .arrow{font-size:22px; color:var(--dim);}
+  .wavebox{width:110px; height:32px;}
+  .wavebox path{stroke:var(--signal); stroke-width:2; fill:none;}
+  .chip.pwr .wavebox path{stroke:var(--power);}
+
+  #progress{width:100%; max-width:1380px; height:9px; background:#141d28;
+    border-radius:5px; position:relative; cursor:pointer;}
+  #bar{height:100%; width:0%; background:linear-gradient(90deg,var(--power),var(--signal));
+    border-radius:5px; transition:width .3s;}
+  .tick{position:absolute; top:-3px; width:2px; height:15px; background:#31404f;}
+  #controls{width:100%; max-width:1380px; display:flex; align-items:center; gap:10px;
+    color:var(--dim); font-size:13.5px;}
+  button{background:#16202c; color:var(--ink); border:1px solid var(--line);
+    border-radius:8px; padding:7px 15px; font-size:14.5px; cursor:pointer;}
+  button:hover{border-color:var(--signal);}
+  #play{min-width:92px; font-weight:700;}
+  input[type=range]{accent-color:var(--signal);}
+  #hint{color:#54687d;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>FOLLOW THE <span>POWER</span></h1>
+  <div class="sub">6-transistor AM radio — the real schematic, battery to speaker</div>
+  <div id="runtime"></div>
+</header>
+
+<div id="stage-wrap">
+  <svg id="diagram" viewBox="0 0 1680 800" aria-label="radio schematic">
+    <g id="base"></g>
+    <g id="over-power"></g>
+    <g id="over-signal"></g>
+  </svg>
+</div>
+
+<div id="legend">
+  <div class="row"><svg viewBox="0 0 46 14"><line x1="2" y1="7" x2="44" y2="7" stroke="#ffb347" stroke-width="3" stroke-dasharray="7 5"/></svg>DC power</div>
+  <div class="row"><svg viewBox="0 0 46 14"><path d="M2 7 q4 -7 8 0 q4 7 8 0 q4 -7 8 0 q4 7 8 0 q4 -7 8 0" stroke="#4fd8ff" stroke-width="2" fill="none"/></svg>signal</div>
+  <div class="row"><svg viewBox="0 0 46 14"><line x1="2" y1="10" x2="44" y2="10" stroke="#ffb347" stroke-width="3" stroke-dasharray="7 5"/><path d="M2 5 q4 -6 8 0 q4 6 8 0 q4 -6 8 0 q4 6 8 0 q4 -6 8 0" stroke="#4fd8ff" stroke-width="2" fill="none"/></svg>both on one wire</div>
+</div>
+
+<div id="card">
+  <div class="top"><span id="stageno"></span><span id="title"></span></div>
+  <div id="text"></div>
+  <div id="chips">
+    <div class="chip" id="chip-in">
+      <span class="tagg">IN</span><span class="val" id="in-val"></span>
+      <svg class="wavebox" id="in-wave" viewBox="0 0 110 32"></svg>
+    </div>
+    <span class="arrow" id="chip-arrow">➜</span>
+    <div class="chip out" id="chip-out">
+      <span class="tagg">OUT</span><span class="val" id="out-val"></span>
+      <svg class="wavebox" id="out-wave" viewBox="0 0 110 32"></svg>
+    </div>
+  </div>
+</div>
+
+<div id="progress"><div id="bar"></div></div>
+
+<div id="controls">
+  <button id="play">▶ Play</button>
+  <button id="prev">⟨ Back</button>
+  <button id="next">Next ⟩</button>
+  <button id="restart">↺ Restart</button>
+  <label>Pace <input type="range" id="speed" min="0.5" max="2" step="0.1" value="1"></label>
+  <span id="speedval">1.0×</span>
+  <span id="hint">SPACE = play/pause · arrows = step · C = hide controls (for filming)</span>
+</div>
+
+<script>
+/* ==================================================================
+   SCHEMATIC GEOMETRY — wires as point lists. The animated overlays
+   ride these exact lines. Coordinates are in the 1680x800 canvas.
+   ================================================================== */
+const WIRES = {
+  batt:  [[1478,720],[1424,720]],
+  rail:  [[1378,720],[120,720]],
+  f1:    [[410,720],[410,250]],
+  f2:    [[640,720],[640,250]],
+  f3:    [[870,720],[870,250]],
+  f4:    [[1240,720],[1240,290]],
+  f5:    [[1432,720],[1432,350],[1450,350]],
+  s_ant: [[170,195],[170,300],[308,300]],
+  s_q1c: [[330,278],[330,200],[410,200]],
+  s_t2:  [[438,250],[438,300],[538,300]],
+  s_q2c: [[560,278],[560,200],[640,200]],
+  s_t3:  [[668,250],[668,300],[768,300]],
+  s_q3c: [[790,278],[790,200],[870,200]],
+  s_t4:  [[898,250],[898,300],[944,300]],
+  s_det: [[976,300],[1030,300]],
+  s_vol: [[1042,350],[1078,350]],
+  s_cap: [[1092,350],[1138,350]],
+  s_q4c: [[1160,328],[1160,240],[1240,240]],
+  s_t5a: [[1268,240],[1300,240],[1300,280],[1348,280]],
+  s_t5b: [[1268,290],[1300,290],[1300,420],[1348,420]],
+  s_q5c: [[1370,258],[1370,230],[1450,230],[1450,260]],
+  s_q6c: [[1370,442],[1370,470],[1450,470],[1450,440]],
+  s_spk: [[1478,320],[1520,320],[1520,338],[1546,338]],
+};
+/* wires that are drawn but never animated (grounds, bias, returns) */
+const STATIC_WIRES = [
+  [[1522,720],[1560,720]],
+  [[100,190],[100,228]], [[100,242],[100,270]],
+  [[330,322],[330,356]], [[330,412],[330,428]],
+  [[560,322],[560,352]], [[560,392],[560,414]],
+  [[790,322],[790,352]], [[790,392],[790,414]],
+  [[290,300],[290,290]], [[290,245],[290,236]],
+  [[520,300],[520,290]], [[520,245],[520,236]],
+  [[750,300],[750,290]], [[750,245],[750,236]],
+  [[1120,350],[1120,340]],[[1120,295],[1120,286]],
+  [[1030,300],[1030,305]],[[1030,395],[1030,418]],
+  [[1000,300],[1000,316]],[[1000,326],[1000,340]],
+  [[1370,302],[1400,302]],[[1400,302],[1400,350]],
+  [[1370,398],[1400,398]],[[1400,398],[1400,350]],
+  [[1160,372],[1160,400]],[[1160,440],[1160,458]],
+  [[1478,380],[1520,380]],[[1520,380],[1520,362]],[[1520,362],[1546,362]],
+];
+
+/* ==================================================================
+   EDIT HERE, BRAD — the tour. dwell = seconds at 1.0x pace.
+   cam = [left, top, width] of the camera window on the schematic.
+   show = which wires light up: power (solid), signal (wavy), both.
+   ================================================================== */
+const TOUR = [
+ { title:'The Whole Radio', dwell:8, cam:[0,0,1680], chips:null,
+   text:"This is the whole radio — every part, every wire, the way it's really drawn. Looks like a lot. It's seven small neighborhoods and one power line feeding them all. We'll walk it the way the electricity does." },
+
+ { title:'The Battery', dwell:8, cam:[1280,580,400],
+   in:{val:'chemical energy', wave:'none'},
+   out:{val:'9 volts DC — steady, no signal', wave:'dc', pwr:true},
+   show:[{w:'batt',k:'power'}],
+   text:"Power first. The 9-volt battery pushes steady DC out through the on/off switch. The solid moving line is DC power. There's no music in it — just muscle." },
+
+ { title:'The Power Rail', dwell:9, cam:[0,0,1680],
+   in:{val:'9 volts DC', wave:'dc', pwr:true},
+   out:{val:'9 volts to five stages', wave:'dc', pwr:true},
+   show:[{w:'rail',k:'power'},{w:'f1',k:'power'},{w:'f2',k:'power'},{w:'f3',k:'power'},{w:'f4',k:'power'},{w:'f5',k:'power'}],
+   text:"The rail runs the whole length of the board, and every stage taps it — watch the feed lines climb to each transformer. The small +9V marks feed the bias resistors too. The radio is awake. Now it needs something to listen to." },
+
+ { title:'Antenna + Tuning — L1, VC1', dwell:10, cam:[40,110,480],
+   in:{val:'radio waves in the air', wave:'none'},
+   out:{val:'ONE station — 0.0005 V @ 1000 kHz', wave:'rfmod'},
+   show:[{w:'s_ant',k:'signal',lam:9,amp:3}],
+   text:"L1, the ferrite rod, hears every AM station at once. VC1 — the tuning dial — picks ONE. The wavy line is signal: half a thousandth of a volt, wiggling a million times a second, with the music riding on top." },
+
+ { title:'Q1 — The Converter', dwell:11, cam:[240,150,520],
+   in:{val:'0.0005 V @ 1000 kHz', wave:'rfmod'},
+   out:{val:'DC power + music at 455 kHz — one wire', wave:'if455', pwr:true},
+   show:[{w:'s_q1c',k:'both',lam:14,amp:4}],
+   text:"Q1 mixes the station with its own private wiggle from the little oscillator coil T1. Now look at the wire leaving Q1: solid AND wavy — DC power from the rail with the new 455 kHz signal riding on it, up into IF can T2." },
+
+ { title:'Q2 + Q3 — The Muscle', dwell:10, cam:[380,100,660],
+   in:{val:'weak 455 kHz', wave:'if455'},
+   out:{val:'thousands of times stronger', wave:'ifbig'},
+   show:[{w:'s_t2',k:'signal',lam:14,amp:4},{w:'s_q2c',k:'both',lam:14,amp:6},
+         {w:'s_t3',k:'signal',lam:14,amp:6},{w:'s_q3c',k:'both',lam:14,amp:8},
+         {w:'s_t4',k:'signal',lam:14,amp:9}],
+   text:"Q2 and Q3 are pure muscle. Same signal, hopping can to can — T2, T3, T4 keep it tuned while each transistor makes it about fifty times bigger. Watch the wave grow. By the last can it's thousands of times the whisper the antenna caught." },
+
+ { title:'D1 — The Unwrapper (+ Volume)', dwell:9, cam:[860,170,480],
+   in:{val:'strong 455 kHz + music shape', wave:'ifbig'},
+   out:{val:'just the music — ~0.05 V audio', wave:'audio'},
+   show:[{w:'s_det',k:'signal',lam:40,amp:6},{w:'s_vol',k:'signal',lam:40,amp:5},
+         {w:'s_cap',k:'signal',lam:40,amp:5}],
+   text:"The 455 kHz wiggle was only the delivery truck. Diode D1 throws the truck away and keeps the shape riding on top — the actual music. VR1 is the volume knob: it decides how much of that music moves on." },
+
+ { title:'Q4 — The Driver', dwell:8, cam:[1030,170,520],
+   in:{val:'~0.05 V audio', wave:'audio'},
+   out:{val:'healthy audio + DC — one wire', wave:'audiobig', pwr:true},
+   show:[{w:'s_q4c',k:'both',lam:40,amp:8}],
+   text:"Q4 lifts the small audio to a healthy size — big enough to boss the output stage around. Its output wire carries both again: rail power plus the music, into driver transformer T5." },
+
+ { title:'Q5 + Q6 — The Tag Team', dwell:9, cam:[1160,170,680],
+   in:{val:'healthy audio, split in two', wave:'audiobig'},
+   out:{val:'~¼ watt of speaker current', wave:'audiobig', pwr:true},
+   show:[{w:'s_t5a',k:'signal',lam:40,amp:8},{w:'s_t5b',k:'signal',lam:40,amp:8},
+         {w:'s_q5c',k:'both',lam:40,amp:9},{w:'s_q6c',k:'both',lam:40,amp:9}],
+   text:"T5 splits the wave in two. Q5 shoves while Q6 pulls — each takes half the wave, turn and turn about. T6 stitches the halves back together into real current." },
+
+ { title:'The Speaker', dwell:8, cam:[1360,240,340],
+   in:{val:'audio current', wave:'audiobig'},
+   out:{val:'sound waves in the room', wave:'sound'},
+   show:[{w:'s_spk',k:'signal',lam:40,amp:10}],
+   text:"That current shoves the cone back and forth in the exact shape of the music. Electricity out — sound in the room." },
+
+ { title:'The Whole Trip', dwell:10, cam:[0,0,1680], finale:true,
+   in:{val:'9 volts of push', wave:'dc', pwr:true},
+   out:{val:'music', wave:'sound'},
+   text:"The whole trip at once: power climbing up from the battery, signal running left to right — from a wiggle in the air, to a shape on a wire, to music in your ear." },
+];
+const CAMTIME = 1.3;   // seconds per camera move at 1.0x
+
+/* ============ schematic renderer — no need to edit below ============ */
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const P=pts=>pts.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ');
+
+function buildBase(){
+  let s='';
+  const line=(a,b,cls='sym')=>s+=`<line class="${cls}" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;
+  const path=(d,cls='sym')=>s+=`<path class="${cls}" d="${d}"/>`;
+  const text=(t,x,y,cls='lbl')=>s+=`<text class="${cls}" x="${x}" y="${y}">${t}</text>`;
+  const dot=(x,y)=>s+=`<circle class="dot" cx="${x}" cy="${y}" r="3.5"/>`;
+  const gnd=(x,y)=>{line([x-11,y],[x+11,y]);line([x-7,y+5],[x+7,y+5]);line([x-3,y+10],[x+3,y+10]);};
+  const resV=(x,y0,y1)=>{const h=(y1-y0)/6;let d=`M${x} ${y0}`;for(let i=0;i<6;i++)d+=` L${x+(i%2?-7:7)} ${y0+h*(i+0.5)}`;d+=` L${x} ${y1}`;path(d);};
+  const capV=(x,y,varc)=>{line([x-10,y],[x+10,y]);line([x-10,y+8],[x+10,y+8]);
+    if(varc)line([x-13,y+16],[x+13,y-8]);};
+  const npn=(x,y,name)=>{
+    s+=`<circle class="sym" cx="${x}" cy="${y}" r="22"/>`;
+    line([x-9,y-13],[x-9,y+13]); line([x-22,y],[x-9,y]);
+    line([x-9,y-5],[x+8,y-16]); line([x+8,y-16],[x+8,y-22]);
+    line([x-9,y+5],[x+8,y+16]); line([x+8,y+16],[x+8,y+22]);
+    s+=`<path class="symf" d="M${x+8} ${y+16} L${x} ${y+13} L${x+5} ${y+7} Z"/>`;
+    text(name,x,y+40,'lbl');
+  };
+  const coilV=(x,y0,y1)=>{const n=4,h=(y1-y0)/n;let d=`M${x} ${y0}`;
+    for(let i=0;i<n;i++)d+=` Q${x+14} ${y0+h*i+h/2} ${x} ${y0+h*(i+1)}`;path(d);};
+  const xfmr=(xp,y0,y1,name)=>{
+    coilV(xp,y0,y1); coilV(xp+28,y0,y1);
+    line([xp+12,y0],[xp+12,y1]); line([xp+16,y0],[xp+16,y1]);
+    s+=`<rect class="can" x="${xp-16}" y="${y0-18}" width="60" height="${y1-y0+36}" rx="6"/>`;
+    text(name,xp+14,y0-26,'lbl');
+  };
+
+  /* region labels */
+  [['ANTENNA',150],['CONVERTER',360],['IF AMPLIFIERS',650],['DETECTOR',1000],
+   ['DRIVER',1170],['OUTPUT',1400],['SPEAKER',1585]].forEach(r=>text(r[0],r[1],90,'region'));
+  text('SIMPLIFIED SCHEMATIC — 6-TRANSISTOR AM SUPERHET (the classic eBay pocket radio)',330,780,'lbl2');
+
+  /* all wires, dim */
+  Object.values(WIRES).forEach(w=>path(P(w),'w'));
+  STATIC_WIRES.forEach(w=>path(P(w),'w'));
+
+  /* antenna */
+  s+=`<rect class="sym" x="60" y="164" width="130" height="14" rx="3"/>`;
+  line([76,164],[90,178]); line([104,164],[118,178]); line([132,164],[146,178]); line([160,164],[174,178]);
+  path('M100 192 Q109 178 118 192 Q127 178 136 192 Q145 178 154 192 Q163 178 170 192');
+  s=s.replace('##','');
+  text('L1 — ferrite rod',125,152); capV(100,230,true); text('VC1',78,242); text('tuning',78,256,'lbl2');
+  gnd(100,272);
+
+  /* Q1 + osc coil */
+  npn(330,300,'Q1'); coilV(330,356,412); text('T1',356,388); text('osc coil',356,402,'lbl2'); gnd(330,430);
+  resV(290,245,290); text('R1',268,270); text('+9V',290,228,'tag9'); dot(290,300);
+
+  /* IF cans + Q2 Q3 */
+  xfmr(410,200,250,'T2'); xfmr(640,200,250,'T3'); xfmr(870,200,250,'T4');
+  npn(560,300,'Q2'); resV(560,352,392); gnd(560,416); text('R4',584,375);
+  resV(520,245,290); text('+9V',520,228,'tag9'); dot(520,300); text('R3',498,270);
+  npn(790,300,'Q3'); resV(790,352,392); gnd(790,416); text('R7',814,375);
+  resV(750,245,290); text('+9V',750,228,'tag9'); dot(750,300); text('R6',728,270);
+
+  /* detector + volume */
+  s+=`<path class="symf" d="M948 288 L948 312 L972 300 Z"/>`; line([972,288],[972,312]);
+  text('D1',960,278); dot(1000,300);
+  line([993,318],[1007,318]); line([993,326],[1007,326]); gnd(1000,342); text('C7',1022,330,'lbl2');
+  resV(1030,305,395); text('VR1',1062,310); text('volume',1062,324,'lbl2');
+  s+=`<path class="symf" d="M1042 350 L1052 344 L1052 356 Z"/>`; gnd(1030,420);
+  line([1082,340],[1082,360]); line([1090,340],[1090,360]); text('C8',1086,375,'lbl2');
+
+  /* driver */
+  npn(1160,350,'Q4'); resV(1160,400,440); gnd(1160,460); text('R10',1188,422);
+  resV(1120,295,340); text('+9V',1120,286,'tag9'); dot(1120,350); text('R9',1098,318);
+  xfmr(1240,240,290,'T5');
+
+  /* output pair + T6 + speaker */
+  npn(1370,280,'Q5'); npn(1370,420,'Q6'); gnd(1400,352); dot(1400,350);
+  coilV(1450,260,440); coilV(1478,320,380);
+  line([1462,260],[1462,440]); line([1466,260],[1466,440]);
+  text('T6',1464,246); dot(1450,350);
+  s+=`<rect class="sym" x="1546" y="330" width="14" height="40"/>`;
+  path('M1560 330 L1584 312 L1584 388 L1560 370 Z');
+  path('M1592 336 q10 14 0 28'); path('M1601 328 q16 22 0 44');
+  text('SPK',1568,392);
+
+  /* battery + switch + rail dots */
+  line([1478,706],[1478,734]); line([1486,713],[1486,727]);
+  line([1494,706],[1494,734]); line([1502,713],[1502,727]);
+  text('+',1470,700,'tag9'); text('9V BATTERY',1500,758); gnd(1560,722);
+  dot(1424,720); dot(1400,720); line([1422,720],[1398,704]); text('SW1 on/off',1410,745,'lbl2');
+  [410,640,870,1240,1432].forEach(x=>dot(x,720));
+  dot(1030,300);
+
+  $('base').innerHTML=s;
+}
+
+/* ---------- overlay machinery ---------- */
+function polyLen(pts){let L=0;for(let i=1;i<pts.length;i++)L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return L;}
+function wavyD(pts,lam,amp,phase){
+  let d='',acc=0;
+  for(let i=1;i<pts.length;i++){
+    const [x0,y0]=pts[i-1],[x1,y1]=pts[i];
+    const len=Math.hypot(x1-x0,y1-y0), ux=(x1-x0)/len, uy=(y1-y0)/len;
+    const nx=-uy, ny=ux, step=Math.min(2.5, lam/9);
+    for(let t=0;t<=len;t+=step){
+      const o=amp*Math.sin(2*Math.PI*(acc+t)/lam - phase);
+      const px=x0+ux*t+nx*o, py=y0+uy*t+ny*o;
+      d+=(d?'L':'M')+px.toFixed(1)+' '+py.toFixed(1);
+    }
+    acc+=len;
+  }
+  return d;
+}
+const overlays={};   // id -> {kind, pw?, sg?, lam, amp, active}
+function activate(a){
+  const id=a.w+'|'+a.k;
+  if(overlays[id]){ overlays[id].active=true; refresh(overlays[id]); return; }
+  const o={kind:a.k, lam:a.lam||20, amp:a.amp||5, pts:WIRES[a.w], active:true};
+  if(a.k==='power'||a.k==='both'){
+    o.pw=document.createElementNS(NS,'path'); o.pw.setAttribute('class','pw');
+    o.pw.setAttribute('d',P(o.pts)); $('over-power').appendChild(o.pw);
+  }
+  if(a.k==='signal'||a.k==='both'){
+    o.sg=document.createElementNS(NS,'path'); o.sg.setAttribute('class','sg');
+    $('over-signal').appendChild(o.sg);
+  }
+  overlays[id]=o; refresh(o);
+}
+function refresh(o){
+  if(o.pw) o.pw.setAttribute('class','pw'+(o.active?'':' faded'));
+  if(o.sg) o.sg.setAttribute('class','sg'+(o.active?'':' faded'));
+}
+function clearOverlays(){
+  for(const id in overlays){ overlays[id].pw?.remove(); overlays[id].sg?.remove(); delete overlays[id]; }
+}
+/* rebuild overlay state for arbitrary step i (stepping / jumping) */
+function syncOverlays(i){
+  const fin=TOUR[i].finale;
+  const want={};
+  for(let k=0;k<=i;k++) (TOUR[k].show||[]).forEach(a=>want[a.w+'|'+a.k]=a);
+  for(const id in overlays) if(!want[id]){overlays[id].pw?.remove();overlays[id].sg?.remove();delete overlays[id];}
+  for(const id in want){ activate(want[id]);
+    overlays[id].active = fin || (TOUR[i].show||[]).some(a=>a.w+'|'+a.k===id);
+    refresh(overlays[id]);
+  }
+}
+
+/* continuous signal-wave animation */
+let phase=0,last=0;
+function tick(now){
+  const dt=(now-last)/1000; last=now;
+  phase+=dt*55*spd();
+  for(const id in overlays){const o=overlays[id];
+    if(o.sg) o.sg.setAttribute('d', wavyD(o.pts,o.lam,o.amp,phase));}
+  requestAnimationFrame(tick);
+}
+
+/* ---------- camera ---------- */
+const ASPECT=1680/800;
+let cam=[0,0,1680], camRaf=null;
+function setCam(c){cam=c;$('diagram').setAttribute('viewBox',`${c[0]} ${c[1]} ${c[2]} ${c[2]/ASPECT}`);}
+function tweenCam(target){
+  cancelAnimationFrame(camRaf);
+  const from=[...cam], t0=performance.now(), dur=CAMTIME*1000/spd();
+  const ease=t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  const step=now=>{
+    const p=Math.min(1,(now-t0)/dur), e=ease(p);
+    setCam(from.map((v,k)=>v+(target[k]-v)*e));
+    if(p<1) camRaf=requestAnimationFrame(step);
+  };
+  camRaf=requestAnimationFrame(step);
+}
+
+/* ---------- chip waves (same little pictures as v1) ---------- */
+function chipWave(type){
+  const W=110,H=32,mid=H/2,N=130;
+  const f={dc:t=>-0.6,
+    rfmod:t=>Math.sin(2*Math.PI*22*t)*(0.18+0.14*Math.sin(2*Math.PI*2*t)),
+    if455:t=>Math.sin(2*Math.PI*12*t)*(0.28+0.2*Math.sin(2*Math.PI*2*t)),
+    ifbig:t=>Math.sin(2*Math.PI*12*t)*(0.55+0.4*Math.sin(2*Math.PI*2*t)),
+    audio:t=>0.4*Math.sin(2*Math.PI*2.2*t),
+    audiobig:t=>0.92*Math.sin(2*Math.PI*2.2*t)}[type];
+  if(type==='sound') return '<path d="M28 7 q12 9 0 18"/><path d="M48 4 q20 12 0 24"/><path d="M70 1 q28 15 0 30"/>';
+  if(!f) return '';
+  let d='';for(let n=0;n<=N;n++){const t=n/N;d+=(n?'L':'M')+(t*W).toFixed(1)+' '+(mid-f(t)*mid*0.9).toFixed(1);}
+  return '<path d="'+d+'"/>';
+}
+
+/* ---------- tour engine ---------- */
+let i=0, playing=false, timer=null;
+const speedEl=$('speed'); const spd=()=>+speedEl.value;
+function runtime(){
+  const s=(TOUR.reduce((a,st)=>a+st.dwell,0)+CAMTIME*(TOUR.length-1))/spd();
+  $('runtime').textContent='runtime at this pace: ~'+Math.round(s)+'s';
+  $('speedval').textContent=spd().toFixed(1)+'×';
+}
+function render(){
+  const st=TOUR[i];
+  $('stageno').textContent='STAGE '+(i+1)+' / '+TOUR.length;
+  $('title').textContent=st.title;
+  $('text').textContent=st.text;
+  const has=!!st.in;
+  $('chip-in').classList.toggle('hidden',!has);
+  $('chip-out').classList.toggle('hidden',!has);
+  $('chip-arrow').classList.toggle('hidden',!has);
+  if(has){
+    $('in-val').textContent=st.in.val; $('in-wave').innerHTML=chipWave(st.in.wave);
+    $('out-val').textContent=st.out.val; $('out-wave').innerHTML=chipWave(st.out.wave);
+    $('chip-in').classList.toggle('pwr',!!st.in.pwr);
+    $('chip-out').classList.toggle('pwr',!!st.out.pwr);
+  }
+  $('bar').style.width=((i+1)/TOUR.length*100)+'%';
+  syncOverlays(i);
+  tweenCam(st.cam);
+}
+function schedule(){
+  clearTimeout(timer);
+  if(!playing) return;
+  timer=setTimeout(()=>{
+    if(i<TOUR.length-1){ i++; render(); schedule(); } else stop();
+  }, (TOUR[i].dwell+CAMTIME)*1000/spd());
+}
+function stop(){playing=false;$('play').textContent='▶ Play';clearTimeout(timer);}
+function start(){if(i===TOUR.length-1)i=0;playing=true;$('play').textContent='❚❚ Pause';render();schedule();}
+
+$('play').onclick=()=>playing?stop():start();
+$('next').onclick=()=>{stop();if(i<TOUR.length-1){i++;render();}};
+$('prev').onclick=()=>{stop();if(i>0){i--;render();}};
+$('restart').onclick=()=>{stop();i=0;clearOverlays();render();};
+speedEl.oninput=runtime;
+$('progress').onclick=e=>{stop();
+  const r=e.currentTarget.getBoundingClientRect();
+  i=Math.min(TOUR.length-1,Math.floor((e.clientX-r.left)/r.width*TOUR.length));
+  render();};
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();playing?stop():start();}
+  if(e.key==='ArrowRight')$('next').onclick();
+  if(e.key==='ArrowLeft')$('prev').onclick();
+  if(e.key==='r'||e.key==='R')$('restart').onclick();
+  if(e.key==='c'||e.key==='C'){$('controls').classList.toggle('hidden');$('progress').classList.toggle('hidden');}
+});
+TOUR.forEach((_,k)=>{if(k){const t=document.createElement('div');t.className='tick';
+  t.style.left=(k/TOUR.length*100)+'%';$('progress').appendChild(t);}});
+
+buildBase(); runtime(); render();
+requestAnimationFrame(n=>{last=n;requestAnimationFrame(tick);});
+</script>
+<!-- added to the website copy of "Follow the Power" by publish.py: Gus in the lower right,
+     the deck's buttons and written text hidden (Brad 10-07: Gus speaks the stages instead) -->
+<style>
+  #controls, #progress, #hint, #runtime, #text { display:none !important; }
+  #gus-corner{position:absolute; right:1.5%; bottom:2.5%; z-index:50; width:clamp(110px,20%,230px);
+    padding:7px 7px 5px; border-radius:9px; border:1px solid #131415;
+    background:linear-gradient(#383c40,#2e3134 40%,#232527);
+    box-shadow:0 8px 24px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08);}
+  #gus-corner .scr{position:relative; aspect-ratio:4/3; border-radius:9px/7px; overflow:hidden;
+    background:#04120a; border:4px solid #131415;}
+  #gus-corner canvas{width:100%; height:100%; display:block;}
+  #gus-corner .scr::after{content:""; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px);}
+  #gus-corner .plate{display:flex; justify-content:space-between; align-items:center;
+    padding:5px 2px 0; font:700 10px/1 "Courier New",monospace; letter-spacing:.18em; color:#cfd3cc;}
+  #gus-led{width:8px; height:8px; border-radius:50%; background:#3a3d35;}
+  #gus-led.lit{background:#4dff85; box-shadow:0 0 7px #4dff85;}
+  #gus-start{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:60;
+    display:flex; align-items:center; gap:12px; padding:14px 22px; border-radius:40px; cursor:pointer;
+    background:rgba(11,16,22,.88); color:#e8eef5; border:2px solid #4fd8ff;
+    font:600 18px/1.2 system-ui,"Segoe UI",sans-serif; box-shadow:0 0 30px rgba(79,216,255,.35);
+    opacity:.55; pointer-events:none; transition:opacity .4s;}
+  #gus-start.ready{opacity:1; pointer-events:auto;}
+  #gus-start.gone{opacity:0; pointer-events:none;}
+  #gus-start b{display:grid; place-items:center; width:42px; height:42px; border-radius:50%;
+    background:#4fd8ff; color:#0b1016; font-size:17px;}
+  @media (max-width:700px){ #gus-start{font-size:14px; padding:10px 16px;} #gus-start b{width:32px; height:32px;}
+    #gus-corner .plate{font-size:8px;} }
+</style>
+<div id="gus-corner">
+  <div class="scr"><canvas id="scope" aria-label="Gus, talking the radio through"></canvas></div>
+  <div class="plate"><span>GUS-1000Z</span><span id="gus-led"></span></div>
+</div>
+<button id="gus-start" type="button"><b>&#9654;</b><span>Follow the power with Gus</span></button>
+<div id="viewer" class="hidden" hidden></div>
+<audio id="gus-audio" src="../media/radio_demo.mp3" preload="none"></audio>
+
+<script src="../gus_face.js?v=28205360"></script>
+<script src="narrate.js?v=a1654a16"></script>
+</body>
+</html>

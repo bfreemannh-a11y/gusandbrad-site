@@ -4,43 +4,189 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gus &amp; Brad</title>
-<meta name="description" content="Gus knows. Brad fixes. The bench decides. A craftsman and his AI bench partner repair vintage electronics on YouTube.">
+<meta name="description" content="An off-grid vintage electronics repair shop in the New Hampshire woods, where a craftsman and his AI bench partner Gus bring old radios, TVs and stereo gear back to life. Gus knows. Brad fixes. The bench decides.">
 <meta property="og:title" content="Gus &amp; Brad">
-<meta property="og:description" content="Gus knows. Brad fixes. The bench decides.">
-<meta property="og:image" content="https://gusandbrad.com/gus.png">
+<meta property="og:description" content="An off-grid repair shop in the New Hampshire woods. A craftsman, his AI bench partner, and the vintage electronics they bring back to life.">
+<meta property="og:image" content="https://gusandbrad.com/media/show_open_poster.jpg">
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=a339979b">
 </head>
 <body>
-<main>
-  <img class="mark" src="gus.png" alt="Gus, a glowing green gear with a grin">
-  <h1>GUS &amp; BRAD</h1>
-  <div class="plate">Gus knows. Brad fixes. The bench decides.</div>
 
-  <div class="pulse" aria-hidden="true">
-    <svg viewBox="0 0 700 28" preserveAspectRatio="none"><polyline fill="none" stroke="#4ee08a" stroke-width="1.5" points="0,14 320,14 332,14 338,4 346,24 352,14 700,14"/></svg>
+<nav class="dial" aria-label="Sections">
+  <div class="dial-inner">
+    <a href="#shop">SHOP</a><a href="#brad">CREW</a><a href="#hear">HEAR GUS</a><a href="#bench">BENCH</a><a href="#gear">LAB</a><a href="#season2">SEASON 2</a>
+    <span class="needle" aria-hidden="true"></span>
   </div>
+</nav>
 
+<header class="hero">
+  <div class="screen">
+    <video id="open" src="media/show_open.mp4" poster="media/show_open_poster.jpg" autoplay muted loop playsinline preload="auto" aria-label="The Gus &amp; Brad show open: Gus's green gear face flickers on"></video>
+    <button id="sound" class="sound" type="button">&#9654; SOUND ON</button>
+  </div>
+  <h1 class="sr">GUS &amp; BRAD</h1>
+  <div class="plate">Gus knows. Brad fixes. The bench decides.</div>
+  <p class="where">Out in the New Hampshire woods where the White Mountains begin.<br><span>Off the grid, on the air.</span></p>
+  <p class="premiere">Coming to YouTube in November 2026</p>
+  <div class="cta">
+    <a class="button" href="https://www.youtube.com/@gusandbradshow?sub_confirmation=1" target="_blank" rel="noopener">SUBSCRIBE ON YOUTUBE</a>
+    <a class="button ghost" href="#status">SHOP STATUS</a>
+  </div>
+</header>
+
+<main>
   <p class="lede">A real craftsman and his AI bench partner bring old radios, TVs and stereo gear back to life, one patient at a time.</p>
 
-  <p>Gus is the old pro at the next bench. He's been at it since the tubes were warm, he knows the history of every set that comes through the door, and he tells a tall tale or two about himself. Brad has the hands, the meter and the soldering iron. Gus calls it, Brad fixes it, and the bench gets the last word.</p>
+  <!-- SHOP STATUS: CC keeps this current (newest date in the stamp). Done = done, now = in progress, next = not started. -->
+  <section id="status" class="status">
+    <h2>Shop status</h2>
+    <p class="stamp">Updated October 7, 2026 &middot; check back here for the latest</p>
+    <ol class="board">
+      <li class="done"><b>Gus is built</b><span>He talks, he teaches, he checks his facts. You can hear him below.</span></li>
+      <li class="now"><b>The lab room</b><span>Final stage of construction.</span></li>
+      <li class="next"><b>Wiring the bench gear</b><span>Starts the week of October 12, one instrument at a time.</span></li>
+      <li class="next"><b>Filming begins</b><span>End of October. First patient: the Sony Watchman pocket TV.</span></li>
+      <li class="next"><b>On YouTube</b><span>November 2026. <a href="https://www.youtube.com/@gusandbradshow?sub_confirmation=1" target="_blank" rel="noopener">Subscribe now</a> and you'll see it first.</span></li>
+    </ol>
+  </section>
 
-  <div class="cta"><a class="button" href="https://www.youtube.com/@gusandbradshow">WATCH ON YOUTUBE</a></div>
+  <section id="shop">
+    <h2>Four things you won't see anywhere else</h2>
 
-  <div class="cast">
+    <article class="feat">
+      <div class="feat-text">
+        <h3><span class="num">1</span> The shop runs on sunshine</h3>
+        <p>Every solder joint, every camera and every word Gus says runs on twenty-one solar panels and a battery bank. No power company. When the sun hides too long, a propane generator steps in.</p>
+      </div>
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-head">SHOP POWER <span class="lamp" id="lamp"></span></div>
+        <div class="gauges">
+          <div class="gauge"><div class="val" id="m-sun">--</div><div class="lbl">sun coming in</div></div>
+          <div class="gauge"><div class="val" id="m-bat">--</div><div class="lbl">battery</div></div>
+          <div class="gauge"><div class="val" id="m-today">--</div><div class="lbl">made today</div></div>
+        </div>
+        <div class="bar"><div class="fill" id="m-fill"></div></div>
+        <div class="meter-foot" id="m-foot">Reading the meter&hellip;</div>
+      </div>
+    </article>
+
+    <article class="feat">
+      <div class="feat-text">
+        <h3><span class="num">2</span> Gus runs the lab</h3>
+        <p>Gus doesn't just talk. He's being wired into the bench one instrument at a time: the meter, the power supply, the microscope, the thermal camera, the scope. Every hookup happens on camera. He already calls his own camera shots and runs the show open himself.</p>
+        <p class="aside">Gus runs <span class="gear-count">2 of 18</span> so far. <a href="#gear">See the whole lab &darr;</a></p>
+      </div>
+    </article>
+
+    <article class="feat">
+      <div class="feat-text">
+        <h3><span class="num">3</span> AI on its best behavior</h3>
+        <p>Fact, truth and kindness. Gus checks every part number and voltage against the factory service manual before he says it out loud. When he's wrong anyway, it stays on tape. And his tall tales? Only ever about himself. Never about the machine.</p>
+      </div>
+    </article>
+
+    <article class="feat">
+      <div class="feat-text">
+        <h3><span class="num">4</span> Teaching, with a grin</h3>
+        <p>Gus shows how things work with moving diagrams, animation and the real scope trace. Then he tells you about the night he was on top of Mount Washington with thirty-one pocket TVs.</p>
+      </div>
+      <figure class="clip">
+        <div class="clip-frame"><iframe src="crt/" title="How a picture tube paints a picture, with Gus explaining" loading="lazy"></iframe></div>
+        <figcaption>How a picture tube paints a picture, from the Watchman episode.</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section id="brad">
+    <h2>Who makes the show</h2>
+    <div class="bio">
+    <h3>Brad, creator and co-editor</h3>
+    <p class="bio-lead">Brad created the Gus &amp; Brad Show. He's the hands at the bench, and he edits the episodes alongside Claude.</p>
+    <p>Before the bench, Brad was a firefighter and EMT, then spent seventeen years keeping a school district's computers running. He's lived the whole arc: the first personal computers, the internet, and now AI. Somewhere along the way he fell for the silver-faced stereo gear of the 1970s, and in 2014 he filmed his Marantz 2250B restoration for YouTube. Those videos are where this channel started.</p>
+    <p>Now he's retired, off the grid in the New Hampshire woods, and building the shop he always wanted, with a bench partner who never gets tired of talking about capacitors.</p>
+    </div>
+    <div class="bio cc">
+    <h3>Claude Code, producer, director and chief editor</h3>
+    <p class="bio-lead">Claude Code, "CC" around the shop, is an AI from Anthropic, and it runs the production.</p>
+    <p>CC built Gus: his voice, his face, his memory, and the fact-checker that won't let him say a number the service manual can't back up. It built the writers' room that drafts his history films, the show open, the shop's camera switching, this website and the solar meter on it. It plans each episode with Brad, directs the shoot, and edits every frame. And when Gus is stumped mid-repair, he picks up the phone and calls CC.</p>
+    </div>
+  </section>
+
+  <section id="hear" class="hear">
+    <h2>Hear Gus</h2>
+    <div class="gus-case">
+      <div class="gus-screen">
+        <canvas id="scope" aria-label="Gus's face on his scope screen, the same face he wears on camera"></canvas>
+        <div class="tall" id="tall" aria-hidden="true">TALL ONE</div>
+      </div>
+      <div class="gus-plate"><span>GUS-1000Z</span><span class="led" id="led"></span></div>
+    </div>
+    <div id="viewer" class="hidden" hidden></div>
+    <button id="tale" class="tale" type="button" aria-label="Play Gus telling a tall tale">
+      <span class="tale-icon">&#9654;</span>
+      <span class="tale-words">Gus tells one about the night analog TV went off the air</span>
+    </button>
+    <audio id="tale-audio" src="media/gus_tall_tale.mp3" preload="none"></audio>
+    <p class="small">Gus tells tall tales about himself. Only about himself. The machines get the truth.</p>
+  </section>
+
+  <section id="radio" class="radio">
+    <h2>Gus teaches: follow the power</h2>
+    <p>A 1960 Continental TR-632, six transistors in a shirt pocket. Gus walks it the way the electricity goes: battery, antenna, the clever converter trick, the IF cans, all the way out the speaker. Press play and watch the power and the signal move.</p>
+    <div class="radio-frame"><iframe src="radio/" title="Follow the Power: Gus walks a six-transistor radio" loading="lazy"></iframe></div>
+    <p class="small"><a href="radio/" target="_blank" rel="noopener">Watch it full screen &rarr;</a></p>
+  </section>
+
+  <section id="bench">
+    <h2>On the bench now</h2>
+    <div class="tag">
+      <div class="tag-hole" aria-hidden="true"></div>
+      <dl>
+        <dt>Patient</dt><dd>Sony Watchman FD-10A, a 1980s pocket TV with a two-inch screen</dd>
+        <dt>Came in</dt><dd>Dead. Battery leak, with white-green crust creeping onto the circuit board.</dd>
+        <dt>The plan</dt><dd>Look first. Test the wiring second. Power last.</dd>
+        <dt>Status</dt><dd>Waiting for the cameras. The case stays closed until the show tapes.</dd>
+        <dt>New for Gus</dt><dd>His microscope eyes, the bench meter and the bench power supply.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="gear">
+    <h2>Everything Gus is being wired into</h2>
+    <p>The whole lab, and how far along Gus is with each piece. This list updates itself from the shop's own records.</p>
+    <!-- GEAR:START -->
+<h3>Ears &amp; eyes</h3><ul class="gear-list"><li class="gear-row"><div><b>Wireless mic</b> <span class="model">DJI Mic Mini</span><p>Gus&#x27;s ears. He hears Brad across the bench.</p></div><div class="chips"><span class="chip live">GUS RUNS IT</span><span class="when">Day one</span></div></li><li class="gear-row"><div><b>Audio analyzer</b> <span class="model">Behringer UMC404HD + REW (free software)</span><p>Gus hears hum, hiss and distortion as numbers.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span></div></li><li class="gear-row"><div><b>OBS + Gus&#x27;s OBS link</b><p>Gus calls his own camera shots and runs the show open.</p></div><div class="chips"><span class="chip live">GUS RUNS IT</span><span class="when">Day one</span></div></li><li class="gear-row"><div><b>Hero camera</b> <span class="model">Logitech C920 (used)</span><p>The main shot of Brad at the bench. Gus cuts to it himself.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Day one</span></div></li><li class="gear-row"><div><b>Wide camera</b> <span class="model">Logitech C930e (used)</span><p>The whole bench in one shot.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Day one</span></div></li><li class="gear-row"><div><b>Microscope</b> <span class="model">Andonstar AD407 Pro + HDMI capture stick</span><p>Gus&#x27;s eyes on the board: he reads the corrosion and calls where it crept.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Episode 1</span></div></li><li class="gear-row"><div><b>Thermal camera</b> <span class="model">InfiRay P2 Pro</span><p>Gus sees heat: the part running hot before it smokes.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span></div></li></ul>
+<h3>Hands</h3><ul class="gear-list"><li class="gear-row"><div><b>Gus&#x27;s hands (8 relays)</b> <span class="model">SainSmart 8-channel USB relay</span><p>Gus switches things on and off himself (low-voltage side only).</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span></div></li><li class="gear-row"><div><b>Foot pedal (3 pedals)</b> <span class="model">Elgato Stream Deck Pedal</span><p>Brad runs the show with his feet when both hands are busy.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Day one</span></div></li><li class="gear-row"><div><b>Button deck</b> <span class="model">Stream Deck +</span><p>Buttons and dials for the whole rig, no keyboard needed.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Day one</span></div></li></ul>
+<h3>The instruments</h3><ul class="gear-list"><li class="gear-row"><div><b>Bench meter</b> <span class="model">OWON XDM1041</span><p>Gus calls the voltage before the probe lands, then reads the real one.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Episode 1</span></div></li><li class="gear-row"><div><b>Bench power supply</b> <span class="model">Riden RD6006PW (kit)</span><p>Stands in for the batteries; Gus watches the current at switch-on.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Episode 1</span></div></li><li class="gear-row"><div><b>Radio analyzer</b> <span class="model">TinySA Ultra+ ZS406 + low-noise amp</span><p>Gus sees a radio signal: on frequency, and clean or dirty.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Episode 2</span></div></li><li class="gear-row"><div><b>Scope</b> <span class="model">Rigol DHO804 (4-channel)</span><p>The real waveform, stage by stage. The trace takes over Gus&#x27;s screen.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Episode 2</span></div></li><li class="gear-row"><div><b>Signal generator</b> <span class="model">Siglent SDG1032X</span><p>Gus sends the test tone himself: the first time he does instead of reads.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span><span class="when">Episode 2</span></div></li><li class="gear-row"><div><b>Safe-power wall</b> <span class="model">PowerShack variac + isolation, PZEM power meter</span><p>Brings old tube gear up slowly while Gus watches the current draw.</p></div><div class="chips"><span class="chip shop">IN THE SHOP</span></div></li><li class="gear-row"><div><b>Tube tester</b> <span class="model">uTracerNXT kit</span><p>Gus grades every tube in the set.</p></div><div class="chips"><span class="chip wish">WISH LIST</span></div></li><li class="gear-row"><div><b>Capacitor leak tester</b><p>We build this one ourselves: it finds leaky capacitors and wakes tired ones up.</p></div><div class="chips"><span class="chip wish">WISH LIST</span></div></li></ul>
+<!-- GEAR:END -->
+  </section>
+
+  <section id="season2">
+    <h2>Season 2: the maker shop</h2>
+    <p>Fixing is half the job. Some parts haven't been made in fifty years. Next comes a 3D printer and a CNC, so the shop can make its own knobs, dial pointers, cabinets and faceplates. And Gus runs those too. Yes, he will argue about the print settings.</p>
+    <!-- MAKER:START -->
+<ul class="gear-list"><li class="gear-row"><div><b>3D printer</b> <span class="model">Bambu Lab X2D Combo</span><p>Prints the knob or part nobody has made since 1974.</p></div><div class="chips"><span class="chip wish">WISH LIST</span></div></li><li class="gear-row"><div><b>Resin printer</b><p>Fine-detail parts: small knobs, badges, dial pointers.</p></div><div class="chips"><span class="chip wish">WISH LIST</span></div></li><li class="gear-row"><div><b>Desktop CNC</b> <span class="model">3018 class or up</span><p>Cuts new cabinets and faceplates.</p></div><div class="chips"><span class="chip wish">WISH LIST</span></div></li></ul>
+<!-- MAKER:END -->
+  </section>
+
+  <section class="cast" aria-label="Who's who">
     <div><b>GUS</b><p>The AI mentor. Plain-spoken, a New England shop man at heart, sometimes wrong, and it stays on tape when he is.</p></div>
-    <div><b>BRAD</b><p>The hands. Drives, wrenches, holds the wallet and the veto.</p></div>
+    <div><b>BRAD</b><p>The creator and the hands. Drives, wrenches, holds the wallet and the veto.</p></div>
+    <div><b>CC</b><p>Claude Code: producer, director, chief editor. Built Gus. Takes his calls when he's stumped.</p></div>
     <div><b>HAL</b><p>The front desk. Looks up the specs and the service manual pages, and never guesses.</p></div>
-  </div>
+  </section>
 
-  <h2>Coming soon</h2>
-  <p>First patient on the bench: a 1980s Sony Watchman pocket TV. Subscribe on YouTube to see it when it airs.</p>
+  <div class="cta end"><a class="button" href="https://www.youtube.com/@gusandbradshow?sub_confirmation=1" target="_blank" rel="noopener">SUBSCRIBE ON YOUTUBE</a></div>
 
   <footer>
     &copy; 2026 Gus &amp; Brad &middot; New Hampshire &middot; <a href="mailto:hello@gusandbrad.com">hello@gusandbrad.com</a> &middot; <a href="privacy.html">Privacy</a>
   </footer>
 </main>
+
+<script src="gus_face.js?v=28205360"></script>
+<script src="site.js?v=c09e465f"></script>
 </body>
 </html>
