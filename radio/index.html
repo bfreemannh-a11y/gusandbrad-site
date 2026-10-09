@@ -534,6 +534,14 @@ requestAnimationFrame(n=>{last=n;requestAnimationFrame(tick);});
   #gus-start.gone{opacity:0; pointer-events:none;}
   #gus-start b{display:grid; place-items:center; width:42px; height:42px; border-radius:50%;
     background:#4fd8ff; color:#0b1016; font-size:17px;}
+  #gus-stop{position:absolute; right:1.5%; top:2.5%; z-index:60; display:flex; align-items:center; gap:8px;
+    padding:7px 14px 7px 8px; border-radius:30px; cursor:pointer; background:rgba(11,16,22,.88); color:#e8eef5;
+    border:2px solid #4fd8ff; font:600 14px/1 system-ui,"Segoe UI",sans-serif;
+    opacity:0; pointer-events:none; transition:opacity .3s;}
+  #gus-stop.on{opacity:1; pointer-events:auto;}
+  #gus-stop b{display:grid; place-items:center; width:24px; height:24px; border-radius:50%;
+    background:#4fd8ff; color:#0b1016; font-size:11px;}
+  @media (max-width:700px){ #gus-stop{font-size:12px; padding:5px 10px 5px 6px;} #gus-stop b{width:20px; height:20px;} }
   @media (max-width:700px){ #gus-start{font-size:14px; padding:10px 16px;} #gus-start b{width:32px; height:32px;}
     #gus-corner .plate{font-size:8px;} }
 </style>
@@ -542,11 +550,12 @@ requestAnimationFrame(n=>{last=n;requestAnimationFrame(tick);});
   <div class="plate"><span>GUS-1000Z</span><span id="gus-led"></span></div>
 </div>
 <button id="gus-start" type="button"><b>&#9654;</b><span>Follow the power with Gus</span></button>
+<button id="gus-stop" type="button" aria-label="Stop Gus"><b>&#9632;</b><span>Stop</span></button>
 <div id="viewer" class="hidden" hidden></div>
 <audio id="gus-audio" src="../media/radio_demo.mp3" preload="none"></audio>
 
 <script src="../gus_face.js?v=28205360"></script>
-<script src="narrate.js?v=a1654a16"></script>
+<script src="narrate.js?v=1ff1cded"></script>
 <script data-goatcounter="https://bfreemannh.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
