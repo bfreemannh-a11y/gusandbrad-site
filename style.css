@@ -94,7 +94,8 @@ p { margin: 0 0 1em; }
 }
 .button.ghost { background: transparent; color: var(--green); }
 .button:hover { filter: brightness(1.1); }
-.lede { font-size: 21px; text-align: center; margin: 8px 0 8px; }
+.lede { font-size: 24px; font-weight: 700; text-align: center; margin: 8px 0 8px; }
+.lede.sub { font-size: 17px; font-weight: 400; opacity: .85; max-width: 44em; margin: 0 auto 8px; }
 
 .premiere { margin: 14px 0 0; font: 700 15px/1.3 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--amber); text-shadow: 0 0 10px rgba(240,180,76,.35); }
 
