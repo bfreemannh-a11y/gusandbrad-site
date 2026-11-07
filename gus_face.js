@@ -1076,6 +1076,7 @@ const Scope = (() => {
       catch (e) {}
     }
     content.innerHTML = "";
+    wipePanZoom(content);  // last sheet's zoom handles leave with it
     focusReset();          // new content always opens on the wide shot
     ytLive = ytParked = null;
     let src = target, kind = "iframe", label = target;
@@ -1183,7 +1184,12 @@ const Scope = (() => {
       label = rel;
       if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) kind = "img";
       else if (["mp4", "webm"].includes(ext)) kind = "video";
-      else if (ext === "pdf" && opts.page) src += "#page=" + opts.page;
+      else if (ext === "pdf") {
+        // a manual page goes up as one big picture (server renders it) so
+        // Brad can wheel-zoom on his pointer and drag it (10-31)
+        kind = "pdfpage";
+        src = src.split("#")[0];
+      }
       // teaching cards (shop_library/circuits/) read #N as their stage, so
       // page= steps an animated card the same way it turns a manual's pages
       else if (ext === "html" && opts.page) src += "#" + opts.page;
@@ -1191,12 +1197,15 @@ const Scope = (() => {
     if (kind === "grid") {
       // the search grid built itself asynchronously above — nothing to add
     } else if (kind === "img") {
-      const el = new Image(); el.src = src; content.appendChild(el);
+      const el = new Image(); el.src = src;
+      panZoom(content, el);
       el.onerror = () => {
         content.innerHTML = "";
         content.appendChild(/^https?:/i.test(target) ? linkCard(target)
                                                      : missingCard(label));
       };
+    } else if (kind === "pdfpage") {
+      pdfPage(content, caption, src, label, parseInt(opts.page, 10) || 1);
     } else if (kind === "video") {
       const el = document.createElement("video");
       el.src = src; el.controls = true; el.autoplay = true; content.appendChild(el);
@@ -1261,6 +1270,136 @@ const Scope = (() => {
       wlogScope("show: full frame " + label);
     }
   }
+
+  // ── Brad's hand on the page (2026-10-31) ─────────────────────────────────
+  // "put my mouse pointer over a section and pull it in or out with the
+  // scroll wheel, and click to drag it around - all manuals and schematics."
+  // The wheel zooms on the spot under the pointer, a drag slides the sheet,
+  // a double-click puts it back whole. Gus's [focus:] push-in moves the frame
+  // around this, so the two stack instead of fighting.
+  function panZoom(box, el) {
+    const pz = { s: 1, x: 0, y: 0, drag: null };
+    box.classList.add("pz");
+    el.classList.add("pzItem");
+    el.draggable = false;
+    box.appendChild(el);
+    const apply = () => {
+      el.style.transform = `translate(${pz.x}px, ${pz.y}px) scale(${pz.s})`;
+    };
+    // keep at least a quarter of the sheet on the glass, whatever Brad does
+    const clamp = () => {
+      const keep = (x, off, img, full) => {
+        const m = 0.25 * Math.min(img, full);
+        return Math.min(full - m - off, Math.max(m - img - off, x));
+      };
+      pz.x = keep(pz.x, el.offsetLeft, el.offsetWidth * pz.s, box.clientWidth);
+      pz.y = keep(pz.y, el.offsetTop, el.offsetHeight * pz.s, box.clientHeight);
+    };
+    const reset = () => { pz.s = 1; pz.x = pz.y = 0; apply(); };
+    box.onwheel = e => {
+      if (!box.contains(el)) return;
+      e.preventDefault();
+      const r = el.getBoundingClientRect(), k = boxScale(box);
+      // pointer position in the picture's own unscaled pixels
+      const px = (e.clientX - r.left) / k / pz.s, py = (e.clientY - r.top) / k / pz.s;
+      const ns = Math.min(12, Math.max(1, pz.s * Math.exp(-e.deltaY * 0.0015)));
+      if (ns === 1) { reset(); return; }
+      pz.x -= px * (ns - pz.s); pz.y -= py * (ns - pz.s);
+      pz.s = ns;
+      clamp(); apply();
+    };
+    box.onpointerdown = e => {
+      if (e.button !== 0 || !box.contains(el)) return;
+      pz.drag = { id: e.pointerId, cx: e.clientX, cy: e.clientY, x: pz.x, y: pz.y };
+      try { box.setPointerCapture(e.pointerId); } catch (err) {}
+      box.classList.add("dragging");
+    };
+    box.onpointermove = e => {
+      if (!pz.drag || e.pointerId !== pz.drag.id) return;
+      const k = boxScale(box);
+      pz.x = pz.drag.x + (e.clientX - pz.drag.cx) / k;
+      pz.y = pz.drag.y + (e.clientY - pz.drag.cy) / k;
+      clamp(); apply();
+    };
+    box.onpointerup = box.onpointercancel = e => {
+      if (!pz.drag || e.pointerId !== pz.drag.id) return;
+      pz.drag = null;
+      box.classList.remove("dragging");
+    };
+    box.ondblclick = reset;
+    apply();
+    return { reset };
+  }
+
+  // the content box is itself scaled by Gus's [focus:] push-in; screen pixels
+  // must be divided by that to land in the sheet's own pixels
+  function boxScale(box) {
+    const m = (box.style.transform || "").match(/scale\(([\d.]+)\)/);
+    return m ? parseFloat(m[1]) : 1;
+  }
+
+  function wipePanZoom(box) {
+    box.classList.remove("pz", "dragging");
+    box.onwheel = box.onpointerdown = box.onpointermove =
+      box.onpointerup = box.onpointercancel = box.ondblclick = null;
+  }
+
+  // A manual or schematic PDF: the server draws the page as one big picture.
+  // Arrows (and Page Up / Page Down) turn it; each turn opens on the whole page.
+  function pdfPage(box, caption, base, label, page) {
+    const sep = base.includes("?") ? "&" : "?";
+    let count = 0, cur = page, url = null, gen = 0;
+    const img = new Image();
+    img.alt = label;
+    const pz = panZoom(box, img);
+    const nav = document.createElement("div");
+    nav.className = "pzNav";
+    const prev = document.createElement("button"), next = document.createElement("button");
+    prev.textContent = "◀"; next.textContent = "▶";
+    prev.title = "previous page"; next.title = "next page";
+    nav.append(prev, next);
+    const load = n => {
+      const my = ++gen;
+      fetch(base + sep + "render=" + n).then(r => {
+        if (!r.ok) throw new Error(r.status);
+        count = parseInt(r.headers.get("X-Page-Count"), 10) || 1;
+        cur = parseInt(r.headers.get("X-Page"), 10) || n;
+        return r.blob();
+      }).then(b => {
+        if (my !== gen || !box.contains(img)) return;
+        if (url) URL.revokeObjectURL(url);
+        url = URL.createObjectURL(b);
+        img.src = url;
+        pz.reset();
+        caption.textContent = label + "  —  p." + cur + (count > 1 ? " of " + count : "");
+        nav.style.display = count > 1 ? "" : "none";
+        prev.disabled = cur <= 1; next.disabled = cur >= count;
+        try { fetch("/pdf_page_seen", { method: "POST",
+          body: JSON.stringify({ page: cur,
+            name: decodeURIComponent(base.split("?")[0].split("/").pop()) }) }).catch(() => {}); } catch (e) {}
+      }).catch(() => {
+        if (!box.contains(img)) return;
+        box.innerHTML = ""; wipePanZoom(box);
+        box.appendChild(missingCard(label));
+      });
+    };
+    const turn = d => { if (count && cur + d >= 1 && cur + d <= count) load(cur + d); };
+    prev.onclick = e => { e.stopPropagation(); turn(-1); };
+    next.onclick = e => { e.stopPropagation(); turn(1); };
+    nav.onpointerdown = e => e.stopPropagation();
+    nav.ondblclick = e => e.stopPropagation();
+    box.appendChild(nav);
+    pageKeys = e => {
+      if (e.key === "PageDown" || e.key === "ArrowRight") turn(1);
+      else if (e.key === "PageUp" || e.key === "ArrowLeft") turn(-1);
+    };
+    load(page);
+  }
+  let pageKeys = null;
+  document.addEventListener("keydown", e => {
+    if (pageKeys && document.querySelector("#viewerContent .pzNav")
+        && !/^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || "")) pageKeys(e);
+  });
 
   const VIDEO_RE = /\.(mp4|webm|mov|mkv)(\?|#|$)/i;
   const FLAT_RE = /\.(pdf|png|jpe?g|gif|webp|bmp|svg|tiff?|txt|md)(\?|#|$)/i;
